@@ -1,0 +1,77 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 1. DYNAMIC RESOURCES
+resources:
+{{- range $path, $_ :=  .Files.Glob "source-manifests/*.yaml" }}
+  - {{ base $path | quote }}
+{{- end }}
+
+# 2. GLOBAL METADATA
+{{- with .Values.commonLabels }}
+labels:
+  - includeSelectors: true
+    pairs:
+      {{- toYaml . | nindent 6 }}
+{{- end }}
+
+{{- with .Values.commonAnnotations }}
+commonAnnotations:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+
+# 3. CONSISTENT TARGETED PATCHES
+patches:
+  # CLEANUP: Deployment (SMP style - safe for missing fields)
+  - target:
+      kind: Deployment
+      labelSelector: {{ .Values.targetLabelSelector | quote }}
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: unused # Kustomize ignores this name because of the target selector
+        uid: null
+        resourceVersion: null
+        managedFields: null
+        creationTimestamp: null
+      status: null
+
+  # CLEANUP: Service (SMP style - safe for missing fields)
+  - target:
+      kind: Service
+      labelSelector: {{ .Values.targetLabelSelector | quote }}
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: unused
+        uid: null
+        resourceVersion: null
+        managedFields: null
+        creationTimestamp: null
+      spec:
+        clusterIP: null
+      status: null
+
+  # OVERRIDE: Replicas (JSON style)
+  {{- if .Values.replicas }}
+  - target:
+      kind: Deployment
+      labelSelector: {{ .Values.targetLabelSelector | quote }}
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: {{ .Values.replicas }}
+  {{- end }}
+
+  # OVERRIDE: Image (JSON style)
+  {{- if .Values.image }}
+  - target:
+      kind: Deployment
+      labelSelector: {{ .Values.targetLabelSelector | quote }}
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: {{ .Values.image | quote }}
+  {{- end }}

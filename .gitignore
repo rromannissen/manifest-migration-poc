@@ -1,0 +1,16 @@
+# Local workspace and build artifacts
+build/
+dist/
+
+# Source manifests (the 'dirty' exports)
+# We exclude these so the repo stays as a generic 'engine'
+source-manifests/*.yaml
+!source-manifests/.gitkeep
+
+# OS specific
+.DS_Store
+.idea/
+.vscode/
+
+# Helm artifacts
+*.tgz

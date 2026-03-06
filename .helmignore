@@ -1,0 +1,6 @@
+# Patterns to ignore when packaging a chart.
+.DS_Store
+.git
+.gitignore
+build/
+dist/

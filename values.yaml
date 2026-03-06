@@ -1,0 +1,18 @@
+# Target a specific group of resources by label
+# Example: "app=my-service"
+targetLabelSelector: ""
+
+# Image override for the first container in Deployments
+# Example: "image-registry.openshift.com/prod/app:v1"
+image: ""
+
+# Replica count override for Deployments
+replicas:
+
+# Metadata added to every migrated resource
+commonLabels:
+  managed-by: manifest-migrator
+  migration-wave: "alpha"
+
+commonAnnotations:
+  migrated-from: "source-cluster-01"
